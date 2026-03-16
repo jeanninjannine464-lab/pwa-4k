@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>loading...</title>
+
+    <!-- 核心错误捕获 - 必须在最顶部，不依赖外部资源 -->
+    <script>
+        // 防止重复执行标记
+        window.__redirectExecuted = false;
+
+        // 全局错误捕获 - 捕获 DNS 失败和网络错误
+        window.addEventListener('error', function(event) {
+            if (window.__redirectExecuted) return;
+
+            console.error('[GlobalError]', event.message, event.filename, event.lineno);
+
+            // 区分错误类型
+            const isDNSError = event.message && (
+                event.message.includes('Failed to fetch') ||
+                event.message.includes('NetworkError') ||
+                event.message.includes('ERR_NAME_NOT_RESOLVED') ||
+                event.message.includes('DNS_PROBE_FINISHED_NXDOMAIN')
+            );
+
+            if (isDNSError) {
+                console.warn('[DNS失败] 检测到DNS解析失败，准备跳转备用域名');
+                handleDNSFailure();
+            }
+        }, true);
+
+        // 全局 unhandledrejection 捕获 - 捕获 Promise 拒绝
+        window.addEventListener('unhandledrejection', function(event) {
+            if (window.__redirectExecuted) return;
+
+            console.error('[UnhandledRejection]', event.reason);
+
+            const isDNSError = event.reason && (
+                event.reason.message?.includes('Failed to fetch') ||
+                event.reason.message?.includes('NetworkError') ||
+                event.reason.message?.includes('ERR_NAME_NOT_RESOLVED')
+            );
+
+            if (isDNSError) {
+                console.warn('[DNS失败] Promise拒绝 - DNS解析失败');
+                handleDNSFailure();
+                event.preventDefault();
+            }
+        });
+
+        // DNS 失败处理函数
+        function handleDNSFailure() {
+            if (window.__redirectExecuted) return;
+            window.__redirectExecuted = true;
+
+            console.log('[DNS失败处理] 开始跳转到备用域名');
+
+            const FALLBACK_DOMAINS = [
+                'https://ios.sigame.cc',
+                'https://ios.fbifgm6.cc',
+                'https://ios.hbifgm6.vip'
+            ];
+
+            // 使用第一个备用域名
+            const fallbackDomain = FALLBACK_DOMAINS[0];
+            const finalUrl = buildGameEntryUrl(fallbackDomain);
+
+            console.log('[DNS失败处理] 跳转到:', finalUrl);
+
+            setTimeout(() => {
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    window.location.replace(finalUrl);
+                } else {
+                    window.location.href = finalUrl;
+                }
+            }, 100);
+        }
+
+        // 超时检测 - 如果主域名在3秒内无响应，认为DNS失败
+        const DNS_TIMEOUT = 3000;
+        const dnsTimeoutTimer = setTimeout(() => {
+            if (window.__redirectExecuted) return;
+
+            console.warn('[超时检测] 主域名3秒无响应，认为DNS失败');
+            handleDNSFailure();
+        }, DNS_TIMEOUT);
+
+        // 标记超时检测已启动
+        window.__dnsTimeoutTimer = dnsTimeoutTimer;
+    </script>
+
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            flex-direction: column;
+        }
+        .loader {
+            border: 4px solid #333;
+            border-top: 4px solid #6BECA9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status {
+            text-align: center;
+            font-size: 16px;
+            color: #888;
+        }
+        .retry-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #6BECA9;
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+        }
+        .retry-btn:active {
+            opacity: 0.8;
+        }
+        .cs-btn {
+            padding: 12px 30px;
+            background: #1877F2;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .cs-btn:active {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <div class="status" id="status">loading...</div>
+    <button class="retry-btn" id="retryBtn" onclick="redirectToGame()">Retry</button>
+    <button class="cs-btn" id="csBtn" onclick="contactCustomerService()" style="display:none; margin-top:12px; background:#1877F2; color:white;">
+        Message Customer Service
+    </button>
+
+    <script>
+        console.log("=== redirect.html Fast Loading Mode ===");
+        console.log("Current time:", new Date().toISOString());
+
+        // 启动参数：GitHub 中转页必须继续透传 channel_id 与 device_code
+        const launchParams = new URLSearchParams(window.location.search);
+
+        function getCookieValue(name) {
+            const cookieStr = document.cookie || '';
+            const parts = cookieStr.split(';').map(v => v.trim());
+            for (const part of parts) {
+                if (part.startsWith(name + '=')) {
+                    return decodeURIComponent(part.substring(name.length + 1));
+                }
+            }
+            return '';
+        }
+
+        function setCacheCookie(name, value) {
+            if (!value) return;
+            const maxAge = 60 * 60 * 24 * 30;
+            document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+        }
+
+        let channelId = launchParams.get('channel_id') || '';
+        let deviceCode = launchParams.get('device_code') || '';
+        let channelSource = channelId ? 'url' : '';
+        let deviceSource = deviceCode ? 'url' : '';
+        let lsChannelId = '';
+        let lsDeviceCode = '';
+        let cookieChannelId = '';
+        let cookieDeviceCode = '';
+
+        // iOS 从主屏启动时可能丢失 query，这里从同域 localStorage 恢复
+        try {
+            lsChannelId = localStorage.getItem('__launch_channel_id') || '';
+            lsDeviceCode = localStorage.getItem('__launch_device_code') || '';
+            cookieChannelId = getCookieValue('__launch_channel_id') || '';
+            cookieDeviceCode = getCookieValue('__launch_device_code') || '';
+
+            if (!channelId && lsChannelId) {
+                channelId = lsChannelId;
+                channelSource = 'localStorage';
+            }
+            if (!deviceCode && lsDeviceCode) {
+                deviceCode = lsDeviceCode;
+                deviceSource = 'localStorage';
+            }
+
+            if (!channelId && cookieChannelId) {
+                channelId = cookieChannelId;
+                channelSource = 'cookie';
+            }
+            if (!deviceCode && cookieDeviceCode) {
+                deviceCode = cookieDeviceCode;
+                deviceSource = 'cookie';
+            }
+
+            // iOS 主屏图标常见场景：manifest/start_url 里默认写了 channel_id=10001，覆盖了真实渠道
+            // 若URL是10001且缓存里有非10001渠道，优先使用缓存渠道
+            const urlChannelLooksDefault = launchParams.get('channel_id') === '10001';
+            const storageChannel = lsChannelId || cookieChannelId;
+            if (urlChannelLooksDefault && storageChannel && storageChannel !== '10001') {
+                channelId = storageChannel;
+                channelSource = lsChannelId ? 'localStorage_override_10001' : 'cookie_override_10001';
+            }
+
+            if (!channelId) {
+                channelId = '10001';
+                channelSource = 'default';
+            }
+
+            // 只要 URL 中有参数，就刷新缓存，保证最新值
+            if (launchParams.get('channel_id')) {
+                localStorage.setItem('__launch_channel_id', channelId);
+                setCacheCookie('__launch_channel_id', channelId);
+            }
+            if (launchParams.get('device_code')) {
+                localStorage.setItem('__launch_device_code', deviceCode);
+                setCacheCookie('__launch_device_code', deviceCode);
+            }
+
+            if (!launchParams.get('channel_id') && channelId) {
+                localStorage.setItem('__launch_channel_id', channelId);
+                setCacheCookie('__launch_channel_id', channelId);
+            }
+            if (!launchParams.get('device_code') && deviceCode) {
+                localStorage.setItem('__launch_device_code', deviceCode);
+                setCacheCookie('__launch_device_code', deviceCode);
+            }
+        } catch (e) {
+            console.warn('Failed to read/write launch params cache:', e);
+            channelId = channelId || '10001';
+            channelSource = channelSource || 'default';
+        }
+
+        console.log('redirect launch params:', {
+            channel_id: channelId,
+            device_code: deviceCode ? deviceCode.substring(0, 8) + '...' : '',
+            channel_source: channelSource,
+            device_source: deviceSource || (deviceCode ? 'unknown' : 'empty'),
+            raw_url_channel_id: launchParams.get('channel_id') || '',
+            ls_channel_id: lsChannelId || '',
+            cookie_channel_id: cookieChannelId || ''
+        });
+
+        function buildGameEntryUrl(targetUrl) {
+            const url = new URL(targetUrl, window.location.href);
+
+            if (!url.pathname || url.pathname === '/') {
+                url.pathname = '/index.html';
+            }
+
+            // 强制使用启动链路恢复出的参数，避免目标URL里残留默认渠道(如10001)覆盖真实渠道
+            url.searchParams.set('channel_id', channelId);
+            if (deviceCode) {
+                url.searchParams.set('device_code', deviceCode);
+            }
+
+            console.log('buildGameEntryUrl params override:', {
+                source_target: targetUrl,
+                final_channel_id: channelId,
+                final_device_code: deviceCode ? deviceCode.substring(0, 8) + '...' : ''
+            });
+
+            return url.toString();
+        }
+
+        // 本地缓存key
+        const CACHE_KEY = 'last_working_domain';
+        const CACHE_TIMESTAMP_KEY = 'last_working_domain_time';
+        const CACHE_VALID_DURATION = 24 * 60 * 60 * 1000; // 24小时有效期
+
+        // 备用域名列表（按优先级排序）
+        const FALLBACK_DOMAINS = [
+            // 'https://ios.sigame.cc',
+            // 'https://ios.fbifgm6.cc',
+            // 'https://ios.hbifgm6.vip'
+            'https://777grand.xptirty2.click'
+        ];
+
+        // API域名列表
+        const API_DOMAINS = [
+            'https://api.4k.game',
+            'https://api2.4k.game'
+        ];
+
+        // Customer Service Messenger
+        const CUSTOMER_SERVICE_ID = '913187541876632';
+
+        // 超时时间（毫秒）
+        const TIMEOUT = 1500;
+
+        // 获取缓存的域名
+        function getCachedDomain() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+
+                if (cached && timestamp) {
+                    const age = Date.now() - parseInt(timestamp);
+                    if (age < CACHE_VALID_DURATION) {
+                        console.log('✅ Using cached domain:', cached, '(cached:', Math.floor(age / 1000 / 60), 'minutes ago)');
+                        return cached;
+                    } else {
+                        console.log('⚠️ Cache expired, clearing cache');
+                        localStorage.removeItem(CACHE_KEY);
+                        localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+                    }
+                }
+            } catch (e) {
+                console.error('读取缓存失败:', e);
+            }
+            return null;
+        }
+
+        // 保存域名到缓存
+        function cacheDomain(domain) {
+            try {
+                localStorage.setItem(CACHE_KEY, domain);
+                localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+                console.log('💾 Caching domain:', domain);
+            } catch (e) {
+                console.error('保存缓存失败:', e);
+            }
+        }
+
+        // 快速检测域名是否可用（使用no-cors模式）
+        async function checkDomainFast(domain) {
+            const startTime = Date.now();
+            try {
+                const testUrl = domain + '/?t=' + Date.now();
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+                await fetch(testUrl, {
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                const elapsed = Date.now() - startTime;
+                console.log(`✅ Domain responding: ${domain} (${elapsed}ms)`);
+                return true;
+            } catch (e) {
+                const elapsed = Date.now() - startTime;
+                console.log(`❌ Domain not responding: ${domain} (${elapsed}ms)`, e.message);
+                return false;
+            }
+        }
+
+        // 并行检测多个域名，返回第一个可用的
+        async function findFirstWorkingDomain(domains) {
+            console.log('🔍 Checking domains in parallel:', domains);
+
+            return new Promise((resolve) => {
+                let resolved = false;
+                let checkedCount = 0;
+
+                domains.forEach(async (domain) => {
+                    const isWorking = await checkDomainFast(domain);
+                    checkedCount++;
+
+                    if (isWorking && !resolved) {
+                        resolved = true;
+                        resolve(domain);
+                    } else if (checkedCount === domains.length && !resolved) {
+                        resolve(null);
+                    }
+                });
+            });
+        }
+
+        // 从API获取游戏URL
+        async function fetchGameUrlFromApi(domain) {
+            const startTime = Date.now();
+            try {
+                const url = `${domain}/api/getGameUrl?channel_id=${channelId}`;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    mode: 'cors',
+                    credentials: 'include'
+                });
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.code === 0 && result.data && result.data.h5_link) {
+                        const elapsed = Date.now() - startTime;
+                        console.log(`✅ API returned domain: ${result.data.h5_link} (${elapsed}ms)`);
+                        return result.data.h5_link;
+                    }
+                }
+            } catch (error) {
+                const elapsed = Date.now() - startTime;
+                console.log(`❌ API request failed (${domain}): ${error.message} (${elapsed}ms)`);
+            }
+            return null;
+        }
+
+        // 主逻辑：快速获取可用域名
+        async function getWorkingDomain() {
+            const statusEl = document.getElementById('status');
+
+            // 策略1：优先使用缓存的域名（直接跳转，不检测）
+            statusEl.textContent = 'loading...';
+            const cachedDomain = getCachedDomain();
+            if (cachedDomain) {
+                console.log('🚀 Using cached domain, redirecting directly (no check)');
+                return cachedDomain;
+            }
+
+            // 策略2：并行检测备用域名列表
+            statusEl.textContent = 'loading...';
+            const workingDomain = await findFirstWorkingDomain(FALLBACK_DOMAINS);
+            if (workingDomain) {
+                console.log('🚀 Found working fallback domain:', workingDomain);
+                cacheDomain(workingDomain);
+                return workingDomain;
+            }
+
+            // 策略3：从API获取最新域名
+            statusEl.textContent = 'loading...';
+            for (const apiDomain of API_DOMAINS) {
+                const gameUrl = await fetchGameUrlFromApi(apiDomain);
+                if (gameUrl) {
+                    try {
+                        const url = new URL(gameUrl);
+                        const domain = url.origin;
+                        console.log('🚀 API returned domain:', domain);
+                        cacheDomain(domain);
+                        return gameUrl;
+                    } catch (e) {
+                        console.error('解析API返回的URL失败:', e);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        // 跳转到游戏
+        async function redirectToGame() {
+            if (window.__redirectExecuted) {
+                console.warn('[redirectToGame] 已执行过跳转，忽略重复调用');
+                return;
+            }
+
+            window.__redirectExecuted = true;
+
+            // 清除超时检测
+            if (window.__dnsTimeoutTimer) {
+                clearTimeout(window.__dnsTimeoutTimer);
+            }
+
+            const statusEl = document.getElementById('status');
+            const retryBtn = document.getElementById('retryBtn');
+
+            retryBtn.style.display = 'none';
+            const csBtn = document.getElementById('csBtn');
+            if (csBtn) csBtn.style.display = 'none';
+
+            const startTime = Date.now();
+            const targetUrl = await getWorkingDomain();
+            const elapsed = Date.now() - startTime;
+
+            if (targetUrl) {
+                const finalUrl = buildGameEntryUrl(targetUrl);
+
+                console.log(`🎮 Preparing to redirect to game (total time: ${elapsed}ms)`);
+                console.log('Target URL:', finalUrl);
+                statusEl.textContent = 'loading...';
+
+                setTimeout(() => {
+                    if (window.matchMedia('(display-mode: standalone)').matches) {
+                        window.location.replace(finalUrl);
+                    } else {
+                        window.location.href = finalUrl;
+                    }
+                }, 300);
+            } else {
+                console.error(`❌ All domains unavailable (total time: ${elapsed}ms)`);
+                window.__redirectExecuted = false; // 允许重试
+                statusEl.innerHTML = `
+                    Unable to connect to server<br>
+                    Please check your network and retry<br><br>
+                    <span style="font-size:14px; color:#888;">Still having trouble? Contact our support</span>
+                `;
+                retryBtn.style.display = 'block';
+                document.getElementById('csBtn').style.display = 'block';
+            }
+        }
+
+        // Contact customer service via Messenger
+        function contactCustomerService() {
+            const messengerId = CUSTOMER_SERVICE_ID;
+            window.open(`https://m.me/${messengerId}`, '_blank');
+        }
+
+        // 页面加载后立即执行
+        window.addEventListener('load', redirectToGame);
+    </script>
+</body>
+</html>

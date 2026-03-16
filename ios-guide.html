@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="4K GAME">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icons/favicon-192x192.png">
+    <title>iOS Installation Guide - 4K GAME</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .close-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        .close-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .close-btn .cross {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2.5;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #6BECA9;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #888;
+        }
+
+        .guide-image {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(107, 236, 169, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .tips {
+            background: rgba(107, 236, 169, 0.1);
+            border: 1px solid #6BECA9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .tips h3 {
+            color: #6BECA9;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .tips ol {
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .tips li {
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        .browser-name {
+            color: #6BECA9;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #6BECA9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .content {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .debug-box {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px dashed rgba(107, 236, 169, 0.6);
+            border-radius: 10px;
+            padding: 12px;
+            color: #cfeedd;
+            font-size: 12px;
+            line-height: 1.5;
+            word-break: break-all;
+            font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+        }
+
+        .debug-box h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: #6BECA9;
+        }
+
+        .debug-box .row {
+            margin-bottom: 6px;
+        }
+
+        .copy-debug-btn {
+            margin-top: 8px;
+            padding: 8px 12px;
+            border: 1px solid #6BECA9;
+            background: rgba(107, 236, 169, 0.12);
+            color: #6BECA9;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .copy-debug-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 关闭按钮 -->
+        <div class="close-btn" onclick="handleClose()">
+            <svg viewBox="0 0 24 24">
+                <path class="cross" d="M6 6L18 18M18 6L6 18" />
+            </svg>
+        </div>
+
+        <div class="header">
+            <h1>📱 Add to Home Screen</h1>
+            <p>Follow the guide below to install the game</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading guide...</p>
+        </div>
+
+        <div id="content" class="content">
+            <img id="guideImage" class="guide-image" alt="Installation Guide">
+
+            <div class="tips">
+                <h3>📝 Installation Steps</h3>
+                <ol id="stepsList">
+                    <!-- Steps will be generated by JavaScript -->
+                </ol>
+            </div>
+        </div>
+
+        <div id="debugBox" class="debug-box">
+            <h4>Debug Params (Temporary)</h4>
+            <div id="debugContent">Initializing...</div>
+            <button class="copy-debug-btn" onclick="copyDebugInfo()">Copy Debug Info</button>
+        </div>
+    </div>
+
+    <script>
+        console.log("=== ios-guide.html loaded ===");
+        console.log("User Agent:", navigator.userAgent);
+        console.log("Current URL:", window.location.href);
+        console.log("Referrer URL:", document.referrer);
+
+        // Get URL parameters
+        const params = window.location.search;
+        const urlParams = new URLSearchParams(params);
+        const channelId = urlParams.get('channel_id') || '10001';
+        const deviceCode = urlParams.get('device_code') || '';
+
+        function setCacheCookie(name, value) {
+            if (!value) return;
+            const maxAge = 60 * 60 * 24 * 30;
+            document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+        }
+
+        function getCookieValue(name) {
+            const cookieStr = document.cookie || '';
+            const parts = cookieStr.split(';').map(v => v.trim());
+            for (const part of parts) {
+                if (part.startsWith(name + '=')) {
+                    return decodeURIComponent(part.substring(name.length + 1));
+                }
+            }
+            return '';
+        }
+
+        // 在 GitHub 域名先缓存参数，避免 iOS 从主屏启动时丢失 query
+        try {
+            if (channelId) {
+                localStorage.setItem('__launch_channel_id', channelId);
+                setCacheCookie('__launch_channel_id', channelId);
+            }
+            if (deviceCode) {
+                localStorage.setItem('__launch_device_code', deviceCode);
+                setCacheCookie('__launch_device_code', deviceCode);
+                console.log('Saved launch params in ios-guide localStorage:', {
+                    channel_id: channelId,
+                    device_code: deviceCode
+                });
+            }
+        } catch (e) {
+            console.warn('Failed to save launch params in ios-guide:', e);
+        }
+
+        function getRedirectEntryUrl() {
+            const redirectUrl = new URL('./redirect.html', window.location.href);
+            redirectUrl.searchParams.set('channel_id', channelId);
+            if (deviceCode) {
+                redirectUrl.searchParams.set('device_code', deviceCode);
+            }
+            return redirectUrl.toString();
+        }
+
+        let latestDebugText = '';
+
+        function renderDebugInfo() {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            let cachedChannel = '';
+            let cachedDevice = '';
+            let cookieChannel = '';
+            let cookieDevice = '';
+            try {
+                cachedChannel = localStorage.getItem('__launch_channel_id') || '';
+                cachedDevice = localStorage.getItem('__launch_device_code') || '';
+                cookieChannel = getCookieValue('__launch_channel_id');
+                cookieDevice = getCookieValue('__launch_device_code');
+            } catch (e) {
+                cachedChannel = '[localStorage read failed]';
+                cachedDevice = '[localStorage read failed]';
+                cookieChannel = '[cookie read failed]';
+                cookieDevice = '[cookie read failed]';
+            }
+
+            const debugLines = [
+                `<div class="row">mode: ${isStandalone ? 'standalone' : 'browser'}</div>`,
+                `<div class="row">url_channel_id: ${channelId || '(empty)'}</div>`,
+                `<div class="row">url_device_code: ${deviceCode || '(empty)'}</div>`,
+                `<div class="row">cache_channel_id: ${cachedChannel || '(empty)'}</div>`,
+                `<div class="row">cache_device_code: ${cachedDevice || '(empty)'}</div>`,
+                `<div class="row">cookie_channel_id: ${cookieChannel || '(empty)'}</div>`,
+                `<div class="row">cookie_device_code: ${cookieDevice || '(empty)'}</div>`,
+                `<div class="row">href: ${window.location.href}</div>`
+            ];
+
+            latestDebugText = [
+                `mode=${isStandalone ? 'standalone' : 'browser'}`,
+                `url_channel_id=${channelId || ''}`,
+                `url_device_code=${deviceCode || ''}`,
+                `cache_channel_id=${cachedChannel || ''}`,
+                `cache_device_code=${cachedDevice || ''}`,
+                `cookie_channel_id=${cookieChannel || ''}`,
+                `cookie_device_code=${cookieDevice || ''}`,
+                `href=${window.location.href}`,
+                `time=${new Date().toISOString()}`
+            ].join('\n');
+
+            const debugContentEl = document.getElementById('debugContent');
+            if (debugContentEl) {
+                debugContentEl.innerHTML = debugLines.join('');
+            }
+
+            console.log('ios-guide debug snapshot:', {
+                mode: isStandalone ? 'standalone' : 'browser',
+                url_channel_id: channelId || '',
+                url_device_code: deviceCode || '',
+                cache_channel_id: cachedChannel || '',
+                cache_device_code: cachedDevice || '',
+                cookie_channel_id: cookieChannel || '',
+                cookie_device_code: cookieDevice || '',
+                href: window.location.href
+            });
+        }
+
+        async function copyDebugInfo() {
+            renderDebugInfo();
+
+            try {
+                await navigator.clipboard.writeText(latestDebugText || '');
+                alert('Debug info copied');
+            } catch (e) {
+                console.warn('Clipboard API failed, fallback copy', e);
+                const textarea = document.createElement('textarea');
+                textarea.value = latestDebugText || '';
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Debug info copied');
+            }
+        }
+
+        // Close button handler
+        function handleClose() {
+            console.log("User clicked close button");
+
+            // Try to go back to previous page
+            if (document.referrer && document.referrer.length > 0) {
+                console.log("Returning to referrer page:", document.referrer);
+                window.location.href = document.referrer;
+            } else {
+                // If no referrer, try to close window
+                console.log("Attempting to close window");
+                window.close();
+
+                // If unable to close (browser restriction), go back
+                setTimeout(() => {
+                    console.log("Unable to close window, using history.back()");
+                    window.history.back();
+                }, 100);
+            }
+        }
+
+        // 检测浏览器类型
+        function detectBrowser() {
+            const ua = navigator.userAgent.toLowerCase();
+
+            if (ua.indexOf('crios') > -1 || ua.indexOf('chrome') > -1) {
+                return 'chrome';
+            } else if (ua.indexOf('fxios') > -1 || ua.indexOf('firefox') > -1) {
+                return 'firefox';
+            } else if (ua.indexOf('fbav') > -1 || ua.indexOf('fb_iab') > -1) {
+                return 'facebook';
+            } else if (ua.indexOf('instagram') > -1) {
+                return 'instagram';
+            } else if (ua.indexOf('messenger') > -1 || ua.indexOf('fbmessenger') > -1) {
+                return 'messenger';
+            } else if (ua.indexOf('safari') > -1 && ua.indexOf('crios') === -1) {
+                return 'safari';
+            }
+
+            return 'safari';
+        }
+
+        // 获取引导图片和步骤
+        function getGuideInfo(browser) {
+            const guides = {
+                safari: {
+                    image: './install/ios_safari_tip.jpg',
+                    steps: [
+                        'Tap the <span class="browser-name">Share button</span> at the bottom (square with arrow)',
+                        'Find <span class="browser-name">"Add to Home Screen"</span> in the menu',
+                        'Tap <span class="browser-name">"Add"</span> in the top right corner',
+                        'Done! The game icon has been added to your home screen'
+                    ]
+                },
+                chrome: {
+                    image: './install/ios_chrome_tip.png',
+                    steps: [
+                        'Tap the <span class="browser-name">three dots</span> menu in the top right',
+                        'Select <span class="browser-name">"Share"</span> option',
+                        'Find and tap <span class="browser-name">"Add to Home Screen"</span>',
+                        'Tap <span class="browser-name">"Add"</span> to complete installation'
+                    ]
+                },
+                facebook: {
+                    image: './install/ios_facebook_tip.jpg',
+                    steps: [
+                        'Tap the <span class="browser-name">three dots</span> menu in the top right',
+                        'Select <span class="browser-name">"Open in Safari"</span>',
+                        'In Safari, tap the <span class="browser-name">Share button</span> at the bottom',
+                        'Select <span class="browser-name">"Add to Home Screen"</span> and complete'
+                    ]
+                },
+                messenger: {
+                    image: './install/ios_messager_tip.jpg',
+                    steps: [
+                        'Tap the <span class="browser-name">three dots</span> menu in the top right',
+                        'Select <span class="browser-name">"Open in Safari"</span>',
+                        'In Safari, tap the <span class="browser-name">Share button</span> at the bottom',
+                        'Select <span class="browser-name">"Add to Home Screen"</span> and complete'
+                    ]
+                }
+            };
+
+            return guides[browser] || guides.safari;
+        }
+
+        // Show guide content
+        function showGuide() {
+            const browser = detectBrowser();
+            console.log("Detected browser:", browser);
+
+            const guideInfo = getGuideInfo(browser);
+            const guideImage = document.getElementById('guideImage');
+            const stepsList = document.getElementById('stepsList');
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('content');
+
+            // Load image
+            const img = new Image();
+            img.onload = function() {
+                console.log("Guide image loaded successfully");
+                guideImage.src = guideInfo.image;
+
+                // Generate steps list
+                stepsList.innerHTML = guideInfo.steps
+                    .map(step => `<li>${step}</li>`)
+                    .join('');
+
+                // Show content
+                loading.style.display = 'none';
+                content.style.display = 'flex';
+            };
+
+            img.onerror = function() {
+                console.error("Guide image failed to load");
+                loading.style.display = 'none';
+                content.style.display = 'flex';
+                content.innerHTML = '<p style="color: #ff6b6b; text-align: center;">Failed to load guide image, please refresh the page</p>';
+            };
+
+            img.src = guideInfo.image;
+        }
+
+        // Show guide after page loads
+        window.addEventListener('load', function() {
+            renderDebugInfo();
+
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (isStandalone) {
+                const redirectEntryUrl = getRedirectEntryUrl();
+                console.log('Standalone mode detected, redirecting to:', redirectEntryUrl);
+                window.location.replace(redirectEntryUrl);
+                return;
+            }
+
+            console.log("Page loaded, showing guide");
+            setTimeout(showGuide, 500);
+        });
+
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                renderDebugInfo();
+            }
+        });
+    </script>
+</body>
+</html>
