@@ -1,7 +1,7 @@
-{
+﻿{
     "id": "10000001",
-    "name": "s3r.fxballon.icu.com",
-    "short_name": "s3r.fxballon.icu.com",
+    "name": "AAY.LOL",
+    "short_name": "AAY.LOL",
     "categories": [
         "photo",
         "productivity",
@@ -14,11 +14,11 @@
     "related_applications": [
         {
             "platform": "webapp",
-            "url": "https://s3r.xbfifteen2.click/10004.json"
+            "url": "https://jeanninjannine464-lab.github.io/pwa-4k/10004.json"
         }
     ],
-    "scope": "/",
-    "start_url": "/index.html?channel_id=10004",
+    "scope": "/pwa_4k/",
+        "start_url": "/pwa_4k/redirect.html?channel_id=10004",
     "display": "standalone",
     "theme_color": "#000",
     "background_color": "#000",
