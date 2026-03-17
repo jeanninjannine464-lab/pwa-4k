@@ -17,8 +17,8 @@
             "url": "https://jeanninjannine464-lab.github.io/pwa-4k/10004.json"
         }
     ],
-    "scope": "/pwa_4k/",
-        "start_url": "/pwa_4k/redirect.html?channel_id=10004",
+    "scope": "/pwa-4k/",
+        "start_url": "/pwa-4k/redirect.html?channel_id=10004",
     "display": "standalone",
     "theme_color": "#000",
     "background_color": "#000",
