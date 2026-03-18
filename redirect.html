@@ -243,7 +243,8 @@
         ];
 
         const CUSTOMER_SERVICE_ID = '913187541876632';
-        const TIMEOUT = 1500;
+        const REQUEST_TIMEOUT = 1500;
+        const SINGLE_DOMAIN_TIMEOUT = 4000;
 
         function getCachedDomain() {
             try {
@@ -273,13 +274,17 @@
             }
         }
 
-        async function checkDomainFast(domain) {
+        function getDomainCheckTimeout(domains) {
+            return domains.length <= 1 ? SINGLE_DOMAIN_TIMEOUT : REQUEST_TIMEOUT;
+        }
+
+        async function checkDomainFast(domain, timeoutMs) {
             try {
                 const testUrl = domain + '/?t=' + Date.now();
                 const controller = new AbortController();
                 const timeoutId = setTimeout(function () {
                     controller.abort();
-                }, TIMEOUT);
+                }, timeoutMs);
 
                 await fetch(testUrl, {
                     method: 'HEAD',
@@ -296,12 +301,13 @@
         }
 
         async function findFirstWorkingDomain(domains) {
+            const timeoutMs = getDomainCheckTimeout(domains);
             return new Promise(function (resolve) {
                 let resolved = false;
                 let checkedCount = 0;
 
                 domains.forEach(async function (domain) {
-                    const isWorking = await checkDomainFast(domain);
+                    const isWorking = await checkDomainFast(domain, timeoutMs);
                     checkedCount += 1;
 
                     if (isWorking && !resolved) {
@@ -320,7 +326,7 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(function () {
                     controller.abort();
-                }, TIMEOUT);
+                }, REQUEST_TIMEOUT);
 
                 const response = await fetch(url, {
                     signal: controller.signal,

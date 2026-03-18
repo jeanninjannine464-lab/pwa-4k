@@ -6,9 +6,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="4K GAME">
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest">
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const channelId = params.get('channel_id') || '10001';
+            const manifestName = channelId === '10001' ? 'manifest.json' : `${channelId}.json`;
+            const manifestLinkEl = document.querySelector('link[rel="manifest"]');
+            if (manifestLinkEl) {
+                manifestLinkEl.href = new URL(`./${manifestName}`, window.location.href).toString();
+                console.log('index early manifest href:', manifestLinkEl.href);
+            }
+        })();
+    </script>
     <link rel="apple-touch-icon" href="./icons/favicon-192x192.png">
-    <title>正在跳转...</title>
+    <title>Redirecting...</title>
     <style>
         body {
             background: #000;
@@ -18,11 +30,13 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
+
         .loading {
             text-align: center;
         }
+
         .spinner {
             border: 4px solid #333;
             border-top: 4px solid #6BECA9;
@@ -32,6 +46,7 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -41,36 +56,44 @@
 <body>
     <div class="loading">
         <div class="spinner"></div>
-        <p>正在跳转到安装页面...</p>
+        <p>Redirecting to install page...</p>
     </div>
 
     <script>
-        console.log("=== index.html 自动跳转 ===");
-        console.log("当前URL:", window.location.href);
+        console.log("=== index.html auto redirect ===");
+        console.log("Current URL:", window.location.href);
         console.log("User Agent:", navigator.userAgent);
 
-        // 检测是否iOS设备
         function isIOSDevice() {
             const ua = navigator.userAgent || navigator.vendor || window.opera;
             return /iPhone|iPad|iPod/.test(ua) && !window.MSStream;
         }
 
-        // 获取URL参数
         const params = window.location.search;
-        console.log("URL参数:", params);
+        const urlParams = new URLSearchParams(params);
+        const channelId = urlParams.get("channel_id") || "10001";
+        const manifestLinkEl = document.querySelector('link[rel="manifest"]');
+        console.log("URL params:", params);
 
-        // 根据设备类型跳转
+        function applyManifestLink() {
+            if (!manifestLinkEl) return;
+            const manifestName = channelId === "10001" ? "manifest.json" : `${channelId}.json`;
+            manifestLinkEl.href = new URL(`./${manifestName}`, window.location.href).toString();
+            console.log("index manifest href:", manifestLinkEl.href);
+        }
+
+        applyManifestLink();
+
         if (isIOSDevice()) {
-            const guideUrl = new URL('./ios-guide.html', window.location.href);
-            const currentParams = new URLSearchParams(params);
-            currentParams.forEach((value, key) => guideUrl.searchParams.set(key, value));
-            guideUrl.searchParams.set('return_url', window.location.href);
+            const guideUrl = new URL("./ios-guide.html", window.location.href);
+            urlParams.forEach((value, key) => guideUrl.searchParams.set(key, value));
+            guideUrl.searchParams.set("return_url", window.location.href);
             const targetUrl = guideUrl.toString();
-            console.log("检测到iOS设备，跳转到:", targetUrl);
+            console.log("Detected iOS device, redirecting to:", targetUrl);
             window.location.href = targetUrl;
         } else {
-            const targetUrl = './install.html' + params;
-            console.log("非iOS设备，跳转到:", targetUrl);
+            const targetUrl = "./install.html" + params;
+            console.log("Non-iOS device, redirecting to:", targetUrl);
             window.location.href = targetUrl;
         }
     </script>
