@@ -219,9 +219,7 @@
         function buildGameEntryUrl(targetUrl) {
             const url = new URL(targetUrl, window.location.href);
 
-            if (!url.pathname || url.pathname === '/') {
-                url.pathname = '/index.html';
-            }
+           
 
             url.searchParams.set('channel_id', channelId);
             if (deviceCode) {
