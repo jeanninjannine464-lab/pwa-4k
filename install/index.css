@@ -30,10 +30,6 @@ img {
     -webkit-tap-highlight-color: transparent
 }
 
-#apps-debug-tracers {
-    display: none
-}
-
 html,
 body {
     overflow: visible
