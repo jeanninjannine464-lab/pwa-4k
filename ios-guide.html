@@ -241,6 +241,54 @@
         const urlParams = new URLSearchParams(params);
         const channelId = urlParams.get('channel_id') || '10001';
         const deviceCode = urlParams.get('device_code') || '';
+        const manifestLinkEl = document.querySelector('link[rel="manifest"]');
+        const RETURN_URL_CACHE_KEY = '__ios_guide_return_url';
+
+        function normalizeHttpUrl(value) {
+            if (!value) return '';
+            try {
+                const normalizedUrl = new URL(value, window.location.href);
+                if (normalizedUrl.protocol === 'http:' || normalizedUrl.protocol === 'https:') {
+                    return normalizedUrl.toString();
+                }
+            } catch (e) {
+                console.warn('Invalid return_url value:', value, e);
+            }
+            return '';
+        }
+
+        function cacheReturnUrl(value) {
+            const normalizedUrl = normalizeHttpUrl(value);
+            if (!normalizedUrl) return;
+            try {
+                sessionStorage.setItem(RETURN_URL_CACHE_KEY, normalizedUrl);
+            } catch (e) {
+                console.warn('Failed to cache ios-guide return_url:', e);
+            }
+        }
+
+        function getCachedReturnUrl() {
+            try {
+                return normalizeHttpUrl(sessionStorage.getItem(RETURN_URL_CACHE_KEY) || '');
+            } catch (e) {
+                console.warn('Failed to read cached ios-guide return_url:', e);
+                return '';
+            }
+        }
+
+        function getReturnTargetUrl() {
+            return normalizeHttpUrl(urlParams.get('return_url') || '') || getCachedReturnUrl();
+        }
+
+        function applyManifestLink() {
+            if (!manifestLinkEl) return;
+            const manifestName = channelId === '10001' ? 'manifest.json' : `${channelId}.json`;
+            manifestLinkEl.href = new URL(`./${manifestName}`, window.location.href).toString();
+            console.log('ios-guide manifest href:', manifestLinkEl.href);
+        }
+
+        cacheReturnUrl(urlParams.get('return_url') || '');
+        applyManifestLink();
 
         function setCacheCookie(name, value) {
             if (!value) return;
@@ -290,6 +338,8 @@
 
         function renderDebugInfo() {
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const cachedReturnUrl = getCachedReturnUrl();
+            const returnTargetUrl = getReturnTargetUrl();
             let cachedChannel = '';
             let cachedDevice = '';
             let cookieChannel = '';
@@ -314,6 +364,9 @@
                 `<div class="row">cache_device_code: ${cachedDevice || '(empty)'}</div>`,
                 `<div class="row">cookie_channel_id: ${cookieChannel || '(empty)'}</div>`,
                 `<div class="row">cookie_device_code: ${cookieDevice || '(empty)'}</div>`,
+                `<div class="row">return_url: ${returnTargetUrl || '(empty)'}</div>`,
+                `<div class="row">cached_return_url: ${cachedReturnUrl || '(empty)'}</div>`,
+                `<div class="row">manifest_href: ${manifestLinkEl ? manifestLinkEl.href : '(missing)'}</div>`,
                 `<div class="row">href: ${window.location.href}</div>`
             ];
 
@@ -325,6 +378,9 @@
                 `cache_device_code=${cachedDevice || ''}`,
                 `cookie_channel_id=${cookieChannel || ''}`,
                 `cookie_device_code=${cookieDevice || ''}`,
+                `return_url=${returnTargetUrl || ''}`,
+                `cached_return_url=${cachedReturnUrl || ''}`,
+                `manifest_href=${manifestLinkEl ? manifestLinkEl.href : ''}`,
                 `href=${window.location.href}`,
                 `time=${new Date().toISOString()}`
             ].join('\n');
@@ -342,6 +398,9 @@
                 cache_device_code: cachedDevice || '',
                 cookie_channel_id: cookieChannel || '',
                 cookie_device_code: cookieDevice || '',
+                return_url: returnTargetUrl || '',
+                cached_return_url: cachedReturnUrl || '',
+                manifest_href: manifestLinkEl ? manifestLinkEl.href : '',
                 href: window.location.href
             });
         }
@@ -370,11 +429,18 @@
         // Close button handler
         function handleClose() {
             console.log("User clicked close button");
+            const returnTargetUrl = getReturnTargetUrl();
+
+            if (returnTargetUrl) {
+                console.log("Returning to saved game URL:", returnTargetUrl);
+                window.location.replace(returnTargetUrl);
+                return;
+            }
 
             // Try to go back to previous page
             if (document.referrer && document.referrer.length > 0) {
                 console.log("Returning to referrer page:", document.referrer);
-                window.location.href = document.referrer;
+                window.location.replace(document.referrer);
             } else {
                 // If no referrer, try to close window
                 console.log("Attempting to close window");

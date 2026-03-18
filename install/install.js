@@ -180,12 +180,24 @@ var startChromeNum = 0;
             console.log("当前URL:", window.location.href)
 
             // 跳转到iOS安装引导页面，显示安装步骤图片
-            const channelId = new URLSearchParams(window.location.search).get('channel_id') || '10001';
-            const deviceCode = new URLSearchParams(window.location.search).get('device_code') || '';
-            let targetUrl = `./ios-guide.html?channel_id=${channelId}`;
+            const currentParams = new URLSearchParams(window.location.search);
+            const channelId = currentParams.get('channel_id') || '10001';
+            const deviceCode = currentParams.get('device_code') || '';
+            const returnUrl = h5_link || window.location.href;
+            const guideUrl = new URL('./ios-guide.html', window.location.href);
+            guideUrl.searchParams.set('channel_id', channelId);
             if (deviceCode) {
-                targetUrl += `&device_code=${encodeURIComponent(deviceCode)}`;
+                guideUrl.searchParams.set('device_code', deviceCode);
             }
+            if (returnUrl) {
+                guideUrl.searchParams.set('return_url', returnUrl);
+                try {
+                    sessionStorage.setItem('__ios_guide_return_url', returnUrl);
+                } catch (e) {
+                    console.warn('Failed to cache ios guide return_url in sessionStorage:', e);
+                }
+            }
+            const targetUrl = guideUrl.toString();
             console.log("准备跳转到ios-guide.html:", targetUrl)
 
             window.location.href = targetUrl;

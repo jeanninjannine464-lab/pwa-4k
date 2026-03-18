@@ -1,4 +1,4 @@
-﻿{
+{
     "id": "10000001",
     "name": "4xslots",
     "short_name": "4xslots",
@@ -17,8 +17,8 @@
             "url": "https://vvkhx.shop/10018.json"
         }
     ],
-    "scope": "/pwa-4k/",
-        "start_url": "/redirect.html?channel_id=10018",
+    "scope": "./",
+        "start_url": "./redirect.html?channel_id=10018",
     "display": "standalone",
     "theme_color": "#000",
     "background_color": "#000",

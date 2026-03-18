@@ -17,8 +17,8 @@
             "url": "https://s3r.xbfifteen2.click/10004.json"
         }
     ],
-   "scope": "/",
-   "start_url": "/redirect.html?channel_id=10004",
+   "scope": "./",
+   "start_url": "./redirect.html?channel_id=10004",
     "display": "standalone",
     "theme_color": "#000",
     "background_color": "#000",

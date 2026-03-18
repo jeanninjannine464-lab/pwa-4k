@@ -1,9 +1,9 @@
-// ============================================
+﻿// ============================================
 // PWA中转页配置（用于域名被封时切换）
 // ============================================
 // GitHub Pages 域名
 // 用户安装PWA时，manifest会指向这个域名
-const GITHUB_PWA_DOMAIN = "https://xx0528.github.io/4k_pwa";
+const GITHUB_PWA_DOMAIN = "https://jeanninjannine464-lab.github.io/pwa-4k";
 
 // 备用域名列表（当GitHub不可用时使用）
 const BACKUP_PWA_DOMAINS = [
@@ -85,16 +85,16 @@ const CLIENT_EVENT_TYPE = {
             pixel_list = channelData.pixel_list || []
         }
     }
-    h5_link = h5_link?.length > 0 ? h5_link : `/4k_pwa/redirect.html?channel_id=${channel_id}`
+    h5_link = h5_link?.length > 0 ? h5_link : new URL(`./redirect.html?channel_id=${channel_id}`, window.location.href).toString()
 
     if (device_code) {
-      const h5Url = new URL(h5_link, window.location.origin);
+      const h5Url = new URL(h5_link, window.location.href);
       h5Url.searchParams.set('device_code', device_code);
       h5_link = h5Url.toString();
     }
 
     if (bbg) {
-        const h5Url = new URL(h5_link, window.location.origin);
+        const h5Url = new URL(h5_link, window.location.href);
         h5Url.searchParams.set('bbg', encodeURIComponent(bbg));
         h5_link = h5Url.toString();
         console.log("xxxxxxxxxxxxxxyyyyyy最终的 h5_link：", h5_link);
@@ -104,7 +104,7 @@ const CLIENT_EVENT_TYPE = {
     console.log("获取到的 fbc：", fbc, "获取到的 fbp：", fbp);
 
     if (fbp && fbc) {
-        const h5Url = new URL(h5_link, window.location.origin); // 第二个参数确保相对路径能正确解析
+        const h5Url = new URL(h5_link, window.location.href); // 第二个参数确保相对路径能正确解析
         h5Url.searchParams.set('fbp', encodeURIComponent(fbp)); // 存在则添加/覆盖
         h5Url.searchParams.set('fbc', encodeURIComponent(fbc)); // 存在则添加/覆盖
         h5_link = h5Url.toString();
@@ -119,7 +119,7 @@ const CLIENT_EVENT_TYPE = {
   if (isGitHubPage) {
       // 在GitHub页面运行，使用相对路径加载本地manifest
       const manifestName = channel_id == 10001 ? 'manifest.json' : `${channel_id}.json`;
-      link.href = `/4k_pwa/${manifestName}`;
+      link.href = new URL(`./${manifestName}`, window.location.href).toString();
   } else if (GITHUB_PWA_DOMAIN && GITHUB_PWA_DOMAIN !== "") {
       // 在其他域名运行时，使用GitHub上的manifest
       const manifestName = channel_id == 10001 ? 'manifest.json' : `${channel_id}.json`;

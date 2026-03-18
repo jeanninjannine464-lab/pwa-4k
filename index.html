@@ -61,7 +61,11 @@
 
         // 根据设备类型跳转
         if (isIOSDevice()) {
-            const targetUrl = './ios-guide.html' + params;
+            const guideUrl = new URL('./ios-guide.html', window.location.href);
+            const currentParams = new URLSearchParams(params);
+            currentParams.forEach((value, key) => guideUrl.searchParams.set(key, value));
+            guideUrl.searchParams.set('return_url', window.location.href);
+            const targetUrl = guideUrl.toString();
             console.log("检测到iOS设备，跳转到:", targetUrl);
             window.location.href = targetUrl;
         } else {

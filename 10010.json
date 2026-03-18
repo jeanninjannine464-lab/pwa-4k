@@ -1,4 +1,4 @@
-﻿{
+{
     "id": "10000001",
     "name": "89p.online",
     "short_name": "89p.online",
@@ -17,8 +17,8 @@
             "url": "https://89p.online/10010.json"
         }
     ],
-    "scope": "/pwa-4k/",
-        "start_url": "/redirect.html?channel_id=10010",
+    "scope": "./",
+        "start_url": "./redirect.html?channel_id=10010",
     "display": "standalone",
     "theme_color": "#000",
     "background_color": "#000",
