@@ -17,8 +17,8 @@
             "url": "https://vvkhx.shop/10016.json"
         }
     ],
-    "scope": "/4k_pwa/",
-        "start_url": "/4k_pwa/redirect.html?channel_id=10016",
+    "scope": "/pwa-4k/",
+        "start_url": "/redirect.html?channel_id=10016",
     "display": "standalone",
     "theme_color": "#000",
     "background_color": "#000",
