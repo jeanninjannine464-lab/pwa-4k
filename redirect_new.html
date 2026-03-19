@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>loading...</title>
+
+    <script>
+        window.__redirectExecuted = false;
+
+        function isStandaloneMode() {
+            return window.matchMedia('(display-mode: standalone)').matches;
+        }
+
+        function isDnsErrorMessage(message) {
+            return !!message && (
+                message.includes('Failed to fetch') ||
+                message.includes('NetworkError') ||
+                message.includes('ERR_NAME_NOT_RESOLVED') ||
+                message.includes('DNS_PROBE_FINISHED_NXDOMAIN')
+            );
+        }
+
+        window.addEventListener('error', function (event) {
+            if (window.__redirectExecuted) return;
+
+            if (isDnsErrorMessage(event.message || '')) {
+                handleDNSFailure();
+            }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function (event) {
+            if (window.__redirectExecuted) return;
+
+            const reasonMessage = event?.reason?.message || String(event.reason || '');
+            if (isDnsErrorMessage(reasonMessage)) {
+                handleDNSFailure();
+                event.preventDefault();
+            }
+        });
+
+        function handleDNSFailure() {
+            if (window.__redirectExecuted) return;
+            window.__redirectExecuted = true;
+
+            const fallbackDomain = 'https://ios.sigame.cc';
+            const finalUrl = buildGameEntryUrl(fallbackDomain);
+
+            setTimeout(function () {
+                if (isStandaloneMode()) {
+                    window.location.replace(finalUrl);
+                } else {
+                    window.location.href = finalUrl;
+                }
+            }, 100);
+        }
+
+        const DNS_TIMEOUT = 3000;
+        window.__dnsTimeoutTimer = setTimeout(function () {
+            if (window.__redirectExecuted) return;
+            handleDNSFailure();
+        }, DNS_TIMEOUT);
+    </script>
+
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .loader {
+            border: 4px solid #333;
+            border-top: 4px solid #6BECA9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            text-align: center;
+            font-size: 16px;
+            color: #888;
+        }
+
+        .retry-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #6BECA9;
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .retry-btn:active {
+            opacity: 0.8;
+        }
+
+        .cs-btn {
+            padding: 12px 30px;
+            background: #1877F2;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .cs-btn:active {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <div class="status" id="status">loading...</div>
+    <button class="retry-btn" id="retryBtn" onclick="redirectToGame()">Retry</button>
+    <button class="cs-btn" id="csBtn" onclick="contactCustomerService()" style="display:none; margin-top:12px; background:#1877F2; color:white;">
+        Message Customer Service
+    </button>
+
+    <script>
+        const launchParams = new URLSearchParams(window.location.search);
+
+        function getCookieValue(name) {
+            const cookieStr = document.cookie || '';
+            const parts = cookieStr.split(';').map(function (value) {
+                return value.trim();
+            });
+
+            for (const part of parts) {
+                if (part.startsWith(name + '=')) {
+                    return decodeURIComponent(part.substring(name.length + 1));
+                }
+            }
+
+            return '';
+        }
+
+        function setCacheCookie(name, value) {
+            if (!value) return;
+            const maxAge = 60 * 60 * 24 * 30;
+            document.cookie = name + '=' + encodeURIComponent(value) + '; path=/; max-age=' + maxAge + '; SameSite=Lax';
+        }
+
+        let channelId = launchParams.get('channel_id') || '';
+        let deviceCode = launchParams.get('device_code') || '';
+        let lsChannelId = '';
+        let lsDeviceCode = '';
+        let cookieChannelId = '';
+        let cookieDeviceCode = '';
+
+        try {
+            lsChannelId = localStorage.getItem('__launch_channel_id') || '';
+            lsDeviceCode = localStorage.getItem('__launch_device_code') || '';
+            cookieChannelId = getCookieValue('__launch_channel_id') || '';
+            cookieDeviceCode = getCookieValue('__launch_device_code') || '';
+
+            if (!channelId && lsChannelId) {
+                channelId = lsChannelId;
+            }
+            if (!deviceCode && lsDeviceCode) {
+                deviceCode = lsDeviceCode;
+            }
+            if (!channelId && cookieChannelId) {
+                channelId = cookieChannelId;
+            }
+            if (!deviceCode && cookieDeviceCode) {
+                deviceCode = cookieDeviceCode;
+            }
+
+            const urlChannelLooksDefault = launchParams.get('channel_id') === '10001';
+            const storageChannel = lsChannelId || cookieChannelId;
+            if (urlChannelLooksDefault && storageChannel && storageChannel !== '10001') {
+                channelId = storageChannel;
+            }
+
+            if (!channelId) {
+                channelId = '10001';
+            }
+
+            if (launchParams.get('channel_id')) {
+                localStorage.setItem('__launch_channel_id', channelId);
+                setCacheCookie('__launch_channel_id', channelId);
+            }
+            if (launchParams.get('device_code')) {
+                localStorage.setItem('__launch_device_code', deviceCode);
+                setCacheCookie('__launch_device_code', deviceCode);
+            }
+            if (!launchParams.get('channel_id') && channelId) {
+                localStorage.setItem('__launch_channel_id', channelId);
+                setCacheCookie('__launch_channel_id', channelId);
+            }
+            if (!launchParams.get('device_code') && deviceCode) {
+                localStorage.setItem('__launch_device_code', deviceCode);
+                setCacheCookie('__launch_device_code', deviceCode);
+            }
+        } catch (e) {
+            channelId = channelId || '10001';
+        }
+
+        function buildGameEntryUrl(targetUrl) {
+            const url = new URL(targetUrl, window.location.href);
+
+           
+
+            url.searchParams.set('channel_id', channelId);
+            if (deviceCode) {
+                url.searchParams.set('device_code', deviceCode);
+            }
+
+            return url.toString();
+        }
+
+        const CACHE_KEY = 'last_working_domain';
+        const CACHE_TIMESTAMP_KEY = 'last_working_domain_time';
+        const CACHE_VALID_DURATION = 24 * 60 * 60 * 1000;
+
+        const FALLBACK_DOMAINS = [
+            'https://vvkhx.icu'
+        ];
+
+        const API_DOMAINS = [
+            'https://api.4k.game',
+            'https://api2.4k.game'
+        ];
+
+        const CUSTOMER_SERVICE_ID = '913187541876632';
+        const REQUEST_TIMEOUT = 1500;
+        const SINGLE_DOMAIN_TIMEOUT = 4000;
+
+        function getCachedDomain() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+
+                if (cached && timestamp) {
+                    const age = Date.now() - parseInt(timestamp, 10);
+                    if (age < CACHE_VALID_DURATION) {
+                        return cached;
+                    }
+
+                    localStorage.removeItem(CACHE_KEY);
+                    localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+                }
+            } catch (e) {
+            }
+
+            return null;
+        }
+
+        function cacheDomain(domain) {
+            try {
+                localStorage.setItem(CACHE_KEY, domain);
+                localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+            } catch (e) {
+            }
+        }
+
+        function getDomainCheckTimeout(domains) {
+            return domains.length <= 1 ? SINGLE_DOMAIN_TIMEOUT : REQUEST_TIMEOUT;
+        }
+
+        async function checkDomainFast(domain, timeoutMs) {
+            try {
+                const testUrl = domain + '/?t=' + Date.now();
+                const controller = new AbortController();
+                const timeoutId = setTimeout(function () {
+                    controller.abort();
+                }, timeoutMs);
+
+                await fetch(testUrl, {
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function findFirstWorkingDomain(domains) {
+            const timeoutMs = getDomainCheckTimeout(domains);
+            return new Promise(function (resolve) {
+                let resolved = false;
+                let checkedCount = 0;
+
+                domains.forEach(async function (domain) {
+                    const isWorking = await checkDomainFast(domain, timeoutMs);
+                    checkedCount += 1;
+
+                    if (isWorking && !resolved) {
+                        resolved = true;
+                        resolve(domain);
+                    } else if (checkedCount === domains.length && !resolved) {
+                        resolve(null);
+                    }
+                });
+            });
+        }
+
+        async function fetchGameUrlFromApi(domain) {
+            try {
+                const url = domain + '/api/getGameUrl?channel_id=' + channelId;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(function () {
+                    controller.abort();
+                }, REQUEST_TIMEOUT);
+
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    mode: 'cors',
+                    credentials: 'include'
+                });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    return null;
+                }
+
+                const result = await response.json();
+                if (result.code === 0 && result.data && result.data.h5_link) {
+                    return result.data.h5_link;
+                }
+            } catch (e) {
+            }
+
+            return null;
+        }
+
+        async function getWorkingDomain() {
+            const statusEl = document.getElementById('status');
+
+            statusEl.textContent = 'loading...';
+            const cachedDomain = getCachedDomain();
+            if (cachedDomain) {
+                return cachedDomain;
+            }
+
+            statusEl.textContent = 'loading...';
+            const workingDomain = await findFirstWorkingDomain(FALLBACK_DOMAINS);
+            if (workingDomain) {
+                cacheDomain(workingDomain);
+                return workingDomain;
+            }
+
+            statusEl.textContent = 'loading...';
+            for (const apiDomain of API_DOMAINS) {
+                const gameUrl = await fetchGameUrlFromApi(apiDomain);
+                if (!gameUrl) {
+                    continue;
+                }
+
+                try {
+                    const url = new URL(gameUrl);
+                    cacheDomain(url.origin);
+                    return gameUrl;
+                } catch (e) {
+                }
+            }
+
+            return null;
+        }
+
+        async function redirectToGame() {
+            if (window.__redirectExecuted) {
+                return;
+            }
+
+            window.__redirectExecuted = true;
+
+            if (window.__dnsTimeoutTimer) {
+                clearTimeout(window.__dnsTimeoutTimer);
+            }
+
+            const statusEl = document.getElementById('status');
+            const retryBtn = document.getElementById('retryBtn');
+            const csBtn = document.getElementById('csBtn');
+
+            retryBtn.style.display = 'none';
+            if (csBtn) {
+                csBtn.style.display = 'none';
+            }
+
+            const targetUrl = await getWorkingDomain();
+            if (targetUrl) {
+                const finalUrl = buildGameEntryUrl(targetUrl);
+                statusEl.textContent = 'loading...';
+
+                setTimeout(function () {
+                    if (isStandaloneMode()) {
+                        window.location.replace(finalUrl);
+                    } else {
+                        window.location.href = finalUrl;
+                    }
+                }, 300);
+                return;
+            }
+
+            window.__redirectExecuted = false;
+            statusEl.innerHTML = [
+                'Unable to connect to server<br>',
+                'Please check your network and retry<br><br>',
+                '<span style="font-size:14px; color:#888;">Still having trouble? Contact our support</span>'
+            ].join('');
+            retryBtn.style.display = 'block';
+            if (csBtn) {
+                csBtn.style.display = 'block';
+            }
+        }
+
+        function contactCustomerService() {
+            window.open('https://m.me/' + CUSTOMER_SERVICE_ID, '_blank');
+        }
+
+        window.addEventListener('load', redirectToGame);
+    </script>
+</body>
+</html>

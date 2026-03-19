@@ -1,7 +1,7 @@
 {
     "id": "10000001",
-    "name": "KHS.LOL",
-    "short_name": "KHS.LOL",
+    "name": "funcy.cc",
+    "short_name": "funcy.cc",
     "categories": [
         "photo",
         "productivity",
@@ -14,11 +14,11 @@
   "related_applications": [
     {
       "platform": "webapp",
-      "url": "https://KHS.LOL/10006.json"
+      "url": "https://funcy.cc/10006.json"
     }
   ],
     "scope": "./",
-        "start_url": "./redirect.html?channel_id=10006",
+        "start_url": "./redirect_new.html?channel_id=10006",
     "display": "standalone",
     "theme_color": "#000",
     "background_color": "#000",

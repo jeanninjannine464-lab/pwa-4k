@@ -1,7 +1,7 @@
 {
     "id": "10000001",
-    "name": "s3r.fxballon.icu.com",
-    "short_name": "s3r.fxballon.icu.com",
+    "name": "777funcy.com",
+    "short_name": "777funcy.com",
     "categories": [
         "photo",
         "productivity",
@@ -14,11 +14,11 @@
     "related_applications": [
         {
             "platform": "webapp",
-            "url": "https://s3r.xbfifteen2.click/10004.json"
+            "url": "https://777funcy.com/10004.json"
         }
     ],
    "scope": "./",
-   "start_url": "./redirect.html?channel_id=10004",
+   "start_url": "./redirect_new.html?channel_id=10004",
     "display": "standalone",
     "theme_color": "#000",
     "background_color": "#000",
