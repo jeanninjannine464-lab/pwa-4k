@@ -186,14 +186,14 @@
                 deviceCode = cookieDeviceCode;
             }
 
-            const urlChannelLooksDefault = launchParams.get('channel_id') === '10001';
+            const urlChannelLooksDefault = launchParams.get('channel_id') === '10016';
             const storageChannel = lsChannelId || cookieChannelId;
-            if (urlChannelLooksDefault && storageChannel && storageChannel !== '10001') {
+            if (urlChannelLooksDefault && storageChannel && storageChannel !== '10016') {
                 channelId = storageChannel;
             }
 
             if (!channelId) {
-                channelId = '10001';
+                channelId = '10016';
             }
 
             if (launchParams.get('channel_id')) {
@@ -213,7 +213,7 @@
                 setCacheCookie('__launch_device_code', deviceCode);
             }
         } catch (e) {
-            channelId = channelId || '10001';
+            channelId = channelId || '10016';
         }
 
         function buildGameEntryUrl(targetUrl) {

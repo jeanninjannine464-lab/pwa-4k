@@ -181,7 +181,7 @@ var startChromeNum = 0;
 
             // 跳转到iOS安装引导页面，显示安装步骤图片
             const currentParams = new URLSearchParams(window.location.search);
-            const channelId = currentParams.get('channel_id') || '10001';
+            const channelId = currentParams.get('channel_id') || '10016';
             const deviceCode = currentParams.get('device_code') || '';
             const returnUrl = h5_link || window.location.href;
             const guideUrl = new URL('./ios-guide.html', window.location.href);

@@ -10,7 +10,7 @@
     <script>
         (function () {
             const params = new URLSearchParams(window.location.search);
-            const channelId = params.get('channel_id') || '10001';
+            const channelId = params.get('channel_id') || '10016';
             const manifestName = channelId === '10001' ? 'manifest.json' : `${channelId}.json`;
             const manifestLinkEl = document.querySelector('link[rel="manifest"]');
             if (manifestLinkEl) {
@@ -71,7 +71,7 @@
 
         const params = window.location.search;
         const urlParams = new URLSearchParams(params);
-        const channelId = urlParams.get("channel_id") || "10001";
+        const channelId = urlParams.get("channel_id") || "10016";
         const manifestLinkEl = document.querySelector('link[rel="manifest"]');
         console.log("URL params:", params);
 

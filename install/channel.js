@@ -285,18 +285,16 @@ function isIOSOrMac() {
 function setGameName() {
  // const gameName = (channelMap[channel_id].host_name[0] || "4K.GAME");
 
-    const gameName = (channel_id == 10001 || channel_id == 10002)
-        ? "4K.GAME"
-        : (channelMap[channel_id]?.host_name?.[0] || "4K.GAME");
+
 
 
   const gameNameText1El = document.querySelector('#gameNameText1')
   if(gameNameText1El){
-    gameNameText1El.innerText = gameName
+    gameNameText1El.innerText = "777 SLOTS"
   }
   const gameNameText2El = document.querySelector('#gameNameText2')
   if(gameNameText2El){
-    gameNameText2El.innerText = gameName
+    gameNameText2El.innerText = "777 SLOTS"
   }
 }
 

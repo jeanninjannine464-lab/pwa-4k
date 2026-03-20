@@ -298,7 +298,7 @@
         const fakeFbclid = 'fb_test_' + Date.now().toString(36);
         const p = new URLSearchParams();
         p.set('fbclid', fakeFbclid);
-        p.set('channel_id', '10001');
+        p.set('channel_id', '10016');
         // 注意：这里用 REAL_PAGE_PATH，不改路径
         history.replaceState(null, '', REAL_PAGE_PATH + '?' + p.toString());
         refreshUrlDisplay();

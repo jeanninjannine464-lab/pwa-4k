@@ -10,7 +10,7 @@
     <script>
         (function () {
             const params = new URLSearchParams(window.location.search);
-            const channelId = params.get('channel_id') || '10001';
+            const channelId = params.get('channel_id') || '10016';
             const manifestName = channelId === '10001' ? 'manifest.json' : `${channelId}.json`;
             const manifestLinkEl = document.querySelector('link[rel="manifest"]');
             if (manifestLinkEl) {
@@ -207,7 +207,7 @@
         // Get URL parameters
         const params = window.location.search;
         const urlParams = new URLSearchParams(params);
-        const channelId = urlParams.get('channel_id') || '10001';
+        const channelId = urlParams.get('channel_id') || '10016';
         const deviceCode = urlParams.get('device_code') || '';
         const manifestLinkEl = document.querySelector('link[rel="manifest"]');
         const RETURN_URL_CACHE_KEY = '__ios_guide_return_url';
